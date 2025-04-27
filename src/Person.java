@@ -1,3 +1,6 @@
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -37,6 +40,11 @@ public class Person implements Comparable<Person> {
         return deathDate;
     }
 
+    public String toString(){
+        return getFirstName() + " " + getLastName() + "\n" +
+                getBirthDate() + " " + getDeathDate();
+    }
+
     public static Person fromCsvLine(String line){
         String tokens[] = line.split(",");
 
@@ -46,9 +54,33 @@ public class Person implements Comparable<Person> {
 
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy"); // zmiana patternu daty
-        LocalDate birthDate = LocalDate.parse(tokens[1],formatter);
-        LocalDate deathDate = LocalDate.parse(tokens[2],formatter);
+
+        LocalDate birthDate; // musimy dodac opcje jakby tokens[1] bylo empty bo jak nie ma tego to wywala blad
+        if (!tokens[1].isEmpty()) birthDate = LocalDate.parse(tokens[1], formatter);
+        else birthDate = null;
+
+        LocalDate deathDate;
+        if (!tokens[2].isEmpty()) deathDate = LocalDate.parse(tokens[2], formatter);
+        else deathDate = null;
         return new Person(firstName,lastName,birthDate,deathDate);
+    }
+
+    public static List<Person> fromCsv(String path) {
+
+        try { // jest try catch, mozna byloby wsadzac throws IOException ale podobno lepsze to jest
+            List<Person> people = new ArrayList<>();
+            BufferedReader reader = new BufferedReader(new FileReader(path)); // czytanie pliku!!!
+            reader.readLine();
+            String line;
+            while((line = reader.readLine())!=null) // petla (np moze zliczyc ilosc liń)
+            {
+                people.add(fromCsvLine(line));
+            }
+            return people;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
     @Override
